@@ -1,8 +1,11 @@
 
 /*
- * Jabrane Saad
- * Karimi Taha
- * Description: Ce programme fait passer le LED de la couleur verte (1s) à la couleur rouge (1s) à la couleur ambre (1s)
+ * Description: 
+ L'exercice consiste encore à allumer la DEL. 
+ Toutefois, les changements seront commandés par l'utilisation du bouton-poussoir Interrupt du circuit. 
+ Ainsi, chaque fois que l'utilisateur appuie sur le bouton (avec la souris...), la DEL tourne à la couleur 
+ de votre choix et demeure dans cette couleur tant que le bouton n'est pas relâché. 
+ Lorsque le bouton est finalement relâché, la DEL s'éteint.
  */
 
 #define F_CPU 8000000UL
@@ -10,13 +13,10 @@
 #include <avr/io.h>
 #include <util/delay.h>
 
-// TODO : utilsier des uint
-// TODO : utiliser des constantes
-// TODO : enlever les chiffres magiques
-// TODO : enlever le bitshift
+const uint8_t RED = PA1;
+const uint8_t GREEN = PA2;
+const uint8_t OFF = PA0;
 
-const uint8_t RED = 0b00000001;
-const uint8_t GREEN = RED << 1;
 
 void waitSecond(int nSeconds)
 {
@@ -27,38 +27,74 @@ void waitSecond(int nSeconds)
     }
 }
 
-void green()
+void ledOff(){
+    PORTA = OFF;
+}
+
+void ledGreen()
 {
     PORTA = GREEN;
     waitSecond(1);
 }
 
-void red()
+void ledRed()
 {
     PORTA = RED;
-    waitSecond(1);
+    waitSecond(10);
 }
 
-void ambre()
+void ledAmbre()
 {
     for (int i = 0; i < 50; i++)
     {
-        // TODO : modifier la fonction green() pour pouvoir l'utiliser ici (parametres)
-        PORTA = GREEN;
-        _delay_ms(5);
         PORTA = RED;
-        _delay_ms(15);
+        _delay_ms(10);
+        PORTA = GREEN;
+        _delay_ms(10);
     }
+}
+
+bool checkButtonState(){
+    return PIND & 0x04;
+}
+
+bool validateButtonPress(){
+    if (checkButtonState()){
+        _delay_ms(10);
+        if (checkButtonState())
+        {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+    else{
+        return false;
+    }
+}
+
+
+void colorLoop(){
+    ledGreen();
+    ledRed();
+    ledAmbre();
 }
 
 int main()
 {
     DDRA = 0xFF;
+    DDRD = 0x00;
     while (true)
     {
-        green();
-        red();
-        ambre();
+        while (validateButtonPress())
+        {
+            ledRed();
+            ledGreen();
+            ledAmbre();
+
+        }
+        PORTA = OFF;
     }
 
     return 0;
