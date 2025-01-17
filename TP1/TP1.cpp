@@ -13,43 +13,64 @@
 #include <avr/io.h>
 #include <util/delay.h>
 
-const uint8_t RED = PA1;
-const uint8_t GREEN = PA2;
-const uint8_t OFF = PA0;
-
+enum Color {
+    OFF,
+    RED,
+    GREEN,
+};
 
 void waitSecond(int nSeconds)
 {
-    int wait = 5 * nSeconds;
-    for (int i = 0; i < wait; i++)
+    for (int i = 0; i < nSeconds; i++)
     {
-        _delay_ms(200);
+        _delay_ms(1000);
     }
 }
 
-void ledOff(){
-    PORTA = OFF;
+void setColor(Color color){
+    switch (color)
+    {
+    case OFF: // mettre les deux pin a 0
+        PORTA &= ~ (1 << PA0);
+        PORTA &= ~ (1 << PA1);
+        break;
+    case GREEN:
+        PORTA &= ~(1 << PA0); // pin 1 a 0
+        PORTA |= (1 << PA1); // pin 2 a 1
+        break;
+
+    case RED:
+        PORTA &= ~ (1 << PA1); // pin 2 a 0
+        PORTA |= (1 << PA0);  // pin 1 a 1 
+        break;
+    default:
+        break;
+    }
 }
 
-void ledGreen()
+void lightOff(){
+    setColor(OFF);
+}
+
+void lightGreen()
 {
-    PORTA = GREEN;
+    setColor(GREEN);
     waitSecond(1);
 }
 
-void ledRed()
+void lightRed()
 {
-    PORTA = RED;
-    waitSecond(10);
+    setColor(RED);
+    waitSecond(1);
 }
 
-void ledAmbre()
+void lightAmber()
 {
     for (int i = 0; i < 50; i++)
     {
-        PORTA = RED;
+        setColor(RED);
         _delay_ms(10);
-        PORTA = GREEN;
+        setColor(GREEN);
         _delay_ms(10);
     }
 }
@@ -61,40 +82,41 @@ bool checkButtonState(){
 bool validateButtonPress(){
     if (checkButtonState()){
         _delay_ms(10);
-        if (checkButtonState())
-        {
+        
+        if (checkButtonState()) {
+            
             return true;
         }
         else {
+            
             return false;
         }
     }
-    else{
+    else {    
         return false;
     }
 }
 
-
 void colorLoop(){
-    ledGreen();
-    ledRed();
-    ledAmbre();
+    lightGreen();
+    lightRed();
 }
 
 int main()
 {
-    DDRA = 0xFF;
-    DDRD = 0x00;
+    DDRA = 0xFF; // set le registre A en ecriture
+    DDRD = 0x00; // assurer que le registre D est en lecture
+    
     while (true)
     {
-        while (validateButtonPress())
+        if (validateButtonPress())
         {
-            ledRed();
-            ledGreen();
-            ledAmbre();
-
+            lightAmber();
+            lightGreen();
+            lightRed();
         }
-        PORTA = OFF;
+        lightOff();
+        
     }
 
     return 0;
