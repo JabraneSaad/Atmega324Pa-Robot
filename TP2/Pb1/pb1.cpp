@@ -111,16 +111,16 @@ bool buttonDebounce(){
 }
 
 void initRobotPorts(){
-    DDRA |= (1 << PA0 | 1 << PA1); 
+    DDRA |= (1 << PA0 | 1 << PA1);
     DDRD &= ~(1 << PD1); 
 }
 
 int main()
 {
-
     State state = State::INIT;
     initRobotPorts();
     while (true)
-    {    
+    {
+        setState(state);   
     }
 }
