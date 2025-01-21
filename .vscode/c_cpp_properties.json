@@ -1,0 +1,20 @@
+{
+    "configurations": [
+        {
+            "name": "Mac-AVR",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/opt/homebrew/Cellar/avr-gcc@9/9.4.0_1/avr/include/**",   // AVR include path
+                "/usr/local/include/**"                                    // General includes
+            ],
+            "defines": [
+                "__AVR_ATmega324PA__"                                     // Define for your AVR microcontroller
+            ],
+            "compilerPath": "/opt/homebrew/Cellar/avr-gcc@9/9.4.0_1/bin/avr-gcc", // AVR GCC path
+            "cStandard": "c11",
+            "cppStandard": "c++14",
+            "intelliSenseMode": "macos-clang-arm64"                        // IntelliSense for macOS on ARM64
+        }
+    ],
+    "version": 4
+}

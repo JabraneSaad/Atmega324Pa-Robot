@@ -75,15 +75,15 @@ void lightAmber()
     }
 }
 
-bool checkButtonState(){
+bool isButtonPressed(){
     return PIND & 0x04;
 }
 
-bool validateButtonPress(){
-    if (checkButtonState()){
+bool buttonDebounce(){
+    if (isButtonPressed()){
         _delay_ms(10);
         
-        if (checkButtonState()) {
+        if (isButtonPressed()) {
             
             return true;
         }
@@ -104,12 +104,12 @@ void colorLoop(){
 
 int main()
 {
-    DDRA = 0xFF; // set le registre A en ecriture
-    DDRD = 0x00; // assurer que le registre D est en lecture
-    
+    DDRA |= (1 << PA0 | 1 << PA1); 
+    DDRD &= ~(1 << PD2);
+
     while (true)
     {
-        if (validateButtonPress())
+        if (buttonDebounce())
         {
             lightAmber();
             lightGreen();
