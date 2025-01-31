@@ -1,118 +1,159 @@
-// Travail : TP2
-// Section # : 4
-// Équipe # : EQUIPE_NO
-// Correcteur : CORRECTEUR
-
 /*
-Description du programme : 
+Travail : TP2 PB1
+Section # : 4
+Équipe # : EQUIPE_103
+Correcteur : Meriam Ben Rabia
+
+Identification du materiel : la cathode de la LED est connecté à la broche A0 et l'anode à la broche A2.
+
+Description du programe : On allume une LED en vert a chaque 3 cliques d'un boutton
+
+Tableau d'etats :
++---------------+--------+------------+-------+
+| CURRENT STATE | BUTTON | NEXT STATE | LED   |
++---------------+--------+------------+-------+
+|     INIT      |   0    |    INIT    |  OFF  |
++---------------+--------+------------+-------+
+|     INIT      |   1    |  PRESSED1  |  OFF  |
++---------------+--------+------------+-------+
+|   PRESSED1    |   0    | RELEASED1  |  OFF  |
++---------------+--------+------------+-------+
+|   PRESSED1    |   1    |  PRESSED1  |  OFF  |
++---------------+--------+------------+-------+
+|   RELEASED1   |   0    | RELEASED1  |  OFF  |
++---------------+--------+------------+-------+
+|   RELEASED1   |   1    |  PRESSED2  |  OFF  |
++---------------+--------+------------+-------+
+|   PRESSED2    |   0    | RELEASED2  |  OFF  |
++---------------+--------+------------+-------+
+|   PRESSED2    |   1    |  PRESSED2  |  OFF  |
++---------------+--------+------------+-------+
+|   RELEASED2   |   0    | RELEASED2  |  OFF  |
++---------------+--------+------------+-------+
+|   RELEASED2   |   1    |  PRESSED3  |  OFF  |
++---------------+--------+------------+-------+
+|   PRESSED3    |   0    | RELEASED3  |  OFF  |
++---------------+--------+------------+-------+
+|   PRESSED3    |   1    |  PRESSED3  |  OFF  |
++---------------+--------+------------+-------+
+|   RELEASED3   |   X    |    INIT    | GREEN |
++---------------+--------+------------+-------+
 */
-
-// TODO : faire la table des etats
-
-// TODO: inclure le tableau des etats
 
 #define F_CPU 8000000UL
 
 #include <avr/io.h>
 #include <util/delay.h>
 
-// TODO : ajouter MS pour deux seconce continuite
-const uint16_t DEUX_SECONDES = 2000;
-const uint8_t DELAY_DEBOUNCE_MS = 10;
+const uint16_t TWO_SECONDS_MS = 2000;
+const uint8_t DEBOUNCE_DELAY_MS = 10;
 
-enum class State{
+enum class State
+{
     INIT,
-    CLICKED1,
+    PRESSED1,
     RELEASED1,
-    CLICKED2,
+    PRESSED2,
     RELEASED2,
-    CLICKED3,
+    PRESSED3,
     RELEASED3,
 };
 
-void setState(State &state){
-    switch(state)
-    {
-    case State::INIT:
-        if (buttonDebounce()) {
-            state = State::CLICKED1;
-        }
-        break;
-    case State::CLICKED1:
-        if (!isButtonPressed()) {
-            state = State::RELEASED1;
-        }
-        break;
-    case State::RELEASED1:
-        if (buttonDebounce()) {
-            state = State::CLICKED2;
-        }
-        break;
-    case State::CLICKED2:
-        if (!isButtonPressed()) {
-            state = State::RELEASED2;
-        }
-        break;
-    case State::RELEASED2:
-        if (buttonDebounce()) {
-            state = State::CLICKED3;
-        }
-        break;
-    case State::CLICKED3:
-        if (!isButtonPressed()) {
-            state = State::RELEASED3;
-        }
-        break;
-    case State::RELEASED3:
-        lightGreen();
-        _delay_ms(DEUX_SECONDES);
-        state = State::INIT;
-        break;
-    // TODO: enlever le default car inutile??
-    default:
-        break;
-    }
-}
-
-void lightOff(){
-    PORTA &= ~ ((1 << PA0) | (1 << PA1));
+void lightOff()
+{
+    PORTA &= ~((1 << PA0) | (1 << PA1));
 }
 
 void lightGreen()
 {
-    PORTA &= ~(1 << PA0); 
+    PORTA &= ~(1 << PA0);
     PORTA |= (1 << PA1);
 }
 
 void lightRed()
 {
-    PORTA &= ~ (1 << PA1);
+    PORTA &= ~(1 << PA1);
     PORTA |= (1 << PA0);
 }
 
-bool isButtonPressed(){
-    return PIND & 0x04;
+bool isButtonPressed()
+{
+    if (PIND & (1 << PD2))
+    {
+        _delay_ms(DEBOUNCE_DELAY_MS);
+        return (PIND & (1 << PD2));
+    }
+    return false;
 }
 
-// TODO : demander a la correctrice : PIND & PD1 au lieu de la fonction limiter le code
-bool buttonDebounce(){
-    if (isButtonPressed()){
-        _delay_ms(10);
-        if (isButtonPressed()) {
-            return true;
+void setState(State &state)
+{
+    switch (state)
+    {
+    case State::INIT:
+        lightOff();
+        if (isButtonPressed())
+        {
+            state = State::PRESSED1;
         }
-        else {   
-            return false;
+        break;
+    case State::PRESSED1:
+        if (!isButtonPressed())
+        {
+            state = State::RELEASED1;
         }
-    }
-    else {    
-        return false;
+        break;
+    case State::RELEASED1:
+        if (isButtonPressed())
+        {
+            state = State::PRESSED2;
+        }
+        break;
+    case State::PRESSED2:
+        if (!isButtonPressed())
+        {
+            state = State::RELEASED2;
+        }
+        break;
+    case State::RELEASED2:
+        if (isButtonPressed())
+        {
+            state = State::PRESSED3;
+        }
+        break;
+    case State::PRESSED3:
+        if (!isButtonPressed())
+        {
+            state = State::RELEASED3;
+        }
+        break;
+    case State::RELEASED3:
+        lightGreen();
+        _delay_ms(TWO_SECONDS_MS);
+        state = State::INIT;
+        break;
     }
 }
 
-void initRobotPorts(){
+void setLED(State currentState)
+{
+    switch (currentState)
+    {
+    case State::RELEASED3:
+        lightGreen();
+        _delay_ms(TWO_SECONDS_MS);
+        break;
+
+    default:
+        lightOff();
+        break;
+    }
+}
+
+void initRobotPorts()
+{
     DDRA |= (1 << PA0 | 1 << PA1);
-    DDRD &= ~(1 << PD1); 
+    DDRD &= ~(1 << PD1);
 }
 
 int main()
@@ -121,6 +162,7 @@ int main()
     initRobotPorts();
     while (true)
     {
-        setState(state);   
+        setState(state);
+        setLED(state);
     }
 }
